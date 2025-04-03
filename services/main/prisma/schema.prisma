@@ -70,9 +70,9 @@ model Submission {
   language Language @default(JAVASCRIPT)
   status Status @default(QUEUED)
 
-  results String
-  runTime Int
-  memoryUsage Int
+  results String?
+  runTime Int?
+  memoryUsage Int?
 
   createdAt DateTime @default(now())
 
