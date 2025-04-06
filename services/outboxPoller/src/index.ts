@@ -1,25 +1,21 @@
-import { Queue } from "bullmq";
-import { redis } from "./redisConnection";
+import DbInterface from "./getData";
 
-export const databaseQueue = new Queue("data-processing", {
-  connection:redis,
-  defaultJobOptions:{
-    attempts: 3,
-    backoff: {
-      type: "exponential",
-      delay: 1000,
-    },
+const dbInterface = new DbInterface()
+const startOutboxPoller = async () => {
+  while (true) {
+    try {
+      const result = await dbInterface.getUnprocessedOutboxEntries();
+
+      const delay = result!!.processed > 0 ? 1000 : 5000;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    } catch (error) {
+      console.error('Poller error:', error);
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
   }
-})
+};
 
-export async function addDataToQueue(data:any){
-  await databaseQueue.add("process-data", data)
-}
-
-addDataToQueue("Hello World")
-  .then(() => {
-    console.log("Data added to queue successfully");
-  })
-  .catch((error) => {
-    console.error("Error adding data to queue:", error);
+startOutboxPoller().catch(error => {
+  console.error('Fatal error in outbox poller:', error);
+  process.exit(1);
 });

@@ -1,0 +1,120 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(uuid())
+  name String
+  email String  @unique
+  passwordHash String
+  role UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  problems Problem[]
+  submissions Submission[]
+
+
+  @@index([email])
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model Problem {
+  id String @id @default(uuid())
+  title String
+  description String
+  difficulty Difficulty @default(EASY)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId String
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  submissions Submission[]
+  testCases TestCase[]
+
+
+  @@index([difficulty])
+}
+
+model TestCase {
+  id String @id @default(uuid())
+  input String
+  expected String
+  problemId String
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  isHidden Boolean @default(false)
+
+  @@index([problemId])
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model Submission {
+  id String @id @default(uuid())
+  code String
+  language Language @default(JAVASCRIPT)
+  status Status @default(QUEUED)
+
+  results String?
+  runTime Int?
+  memoryUsage Int?
+
+  createdAt DateTime @default(now())
+
+  problemId String
+  userId String
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  outboxEvent OutboxSubmission?
+
+
+  @@index([userId, status])
+  @@index([problemId, status])
+}
+
+enum Language {
+  PYTHON
+  JAVASCRIPT
+  TYPESCRIPT
+  JAVA
+  CPP
+}
+
+enum Status {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  TIMEOUT
+}
+
+model OutboxSubmission{
+  id String @id @default(uuid())
+
+  submissionId String @unique
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  eventType String
+  payload String
+  processed Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([processed,createdAt])
+
+}
