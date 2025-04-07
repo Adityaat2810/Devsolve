@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Submission" ALTER COLUMN "results" DROP NOT NULL,
+ALTER COLUMN "runTime" DROP NOT NULL,
+ALTER COLUMN "memoryUsage" DROP NOT NULL;

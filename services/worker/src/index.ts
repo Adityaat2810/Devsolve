@@ -1,34 +1,14 @@
-import { Worker } from 'bullmq';
-import { redisConnection } from './reddisconnection';
+import { SubmissionWorker } from "./queue/getData";
 
-export const dataWorker = new Worker(
-  'data-processing',
-  async (job) => {
-    const data = job.data;
-    console.log(`Processing job ${job.id} with data:`, data);
+const submissionWorker = new SubmissionWorker();
 
-    return { processed: true, timestamp: new Date() };
-  },
-  {
-    connection: redisConnection,
-    concurrency: 5
-  }
-);
+const shutdown = async () => {
+  console.log('Shutting down worker...');
+  await submissionWorker.close();
+  process.exit(0);
+};
 
-dataWorker.on('completed', (job) => {
-  console.log(`Job ${job.id} completed successfully`);
-});
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
 
-dataWorker.on('failed', (job, err) => {
-  console.error(`Job ${job?.id} failed with error:`, err);
-});
-
-// run the worker
-(async () => {
-  await dataWorker.waitUntilReady();
-  console.log('Worker is ready and processing jobs...');
-}
-)().catch((error) => {
-  console.error('Error starting worker:', error);
-}
-);
+console.log('Submission worker started and listening for jobs...');
