@@ -51,6 +51,8 @@ export class DockerService {
         timeoutMs: 10000 // 10 seconds for compilation
       })
 
+      console.log('compile result is ',complileResult)
+
       if (complileResult.exitCode !== 0) {
         return {
           output: '',
@@ -62,20 +64,30 @@ export class DockerService {
 
        // Run the compiled code
        const startTime = Date.now();
-       const runResult = await this.runDocker({
-         image: 'gcc:latest',
-         cmd: ['/app/solution'],
-         mounts: [{
-           source: workDir,
-           target: '/app',
-           type: 'bind'
-         }],
-         stdin: inputPath,
-         timeoutMs: timeLimit,
-         memory: `${memoryLimit}m`,
-         cpuPeriod: 100000,
-         cpuQuota: 100000 // 1 CPU core
-       });
+      //  const runResult = await this.runDocker({
+      //   image: 'gcc:latest',
+      //   cmd: ['/app/solution'],
+      //   mounts: [{
+      //     source: workDir,
+      //     target: '/app',
+      //     type: 'bind'
+      //   }],
+      //   stdin: inputPath, // Pass input during execution
+      //   timeoutMs: timeLimit,
+      // });
+      const runResult = await this.runDocker({
+        image: 'gcc:latest',
+        cmd: ['sh', '-c', 'cat /app/input.txt | /app/solution'],
+        mounts: [{
+          source: workDir,
+          target: '/app',
+          type: 'bind'
+        }],
+        timeoutMs: timeLimit
+      })
+
+
+      console.log('run result is ', runResult.stdout)
 
        const executionTime = Date.now() - startTime;
 
@@ -165,6 +177,8 @@ export class DockerService {
       // Pipe input if provided
       if (stdin) {
         const inputStream = fs.createReadStream(stdin);
+        console.log('input stream is ',stdin)
+
         inputStream.pipe(dockerProcess.stdin);
       }
 
