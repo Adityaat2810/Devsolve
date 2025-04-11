@@ -1,4 +1,5 @@
 
+import Footer from "@/components/home/footer"
 import Headers from "@/components/home/header"
 import Hero from "@/components/home/hero-section"
 import CodePlayground from "@/components/home/playground"
@@ -9,6 +10,7 @@ export default function Home() {
       <Headers/>
       <Hero />
       <CodePlayground/>
+      <Footer/>
     </div>
   )
 }

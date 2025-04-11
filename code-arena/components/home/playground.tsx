@@ -79,9 +79,7 @@ export default function CodePlayground() {
               <Button size="sm" variant="outline" className="text-xs flex items-center gap-1">
                 <Copy className="w-3 h-3" /> Copy
               </Button>
-              <Button size="sm" variant="default" className="text-xs flex items-center gap-1">
-                <Play className="w-3 h-3" /> Run
-              </Button>
+
             </div>
           </div>
         </div>
